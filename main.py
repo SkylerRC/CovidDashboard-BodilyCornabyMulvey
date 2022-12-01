@@ -6,6 +6,7 @@ Created on Sat Nov 26 23:28:40 2022
 """
 
 import ScrapeWebsite
+import PlottingFunctions
 import pandas as pd
 import os
 import datetime
