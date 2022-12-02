@@ -56,6 +56,7 @@ class ScrapeWebsite:
             scrape_data['Total Tests'] = countryCells[12].text.strip().replace(",","")
             scrape_data['Total Tests per 1M Pop'] = countryCells[13].text.strip().replace(",","")
             scrape_data['Population'] = countryCells[14].text.strip().replace(",","")
+            scrape_data['Source'] = website
             
             return scrape_data
             
