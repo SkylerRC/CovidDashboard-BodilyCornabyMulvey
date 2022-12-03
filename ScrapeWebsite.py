@@ -24,6 +24,7 @@ class ScrapeWebsite:
         today_date = datetime.date.today()
         self.scrape_date = today_date.strftime("%Y%m%d")
         self.outputDir = os.path.dirname(os.path.abspath(__file__)) + '\\Covid_Data'
+        self.htmlStorage = {}
         if not os.path.exists(self.outputDir):
             os.makedirs(self.outputDir)
     
@@ -32,10 +33,15 @@ class ScrapeWebsite:
         
         if website == "worldometer":
             URL = "https://www.worldometers.info/coronavirus/"
-            page = requests.get(URL)
-            htmlSoup = BeautifulSoup(page.content, "html.parser")
             
-            countriesTable = htmlSoup.find("table", id="main_table_countries_today")
+            if "worldometer" in self.htmlStorage.keys():
+                htmlSoup = self.htmlStorage['worldometer']
+            else:
+                page = requests.get(URL)
+                htmlSoup = BeautifulSoup(page.content, "html.parser")
+                self.htmlStorage['worldometer'] = htmlSoup
+            
+            countriesTable = htmlSoup.find("table", id="main_table_countries_yesterday")
             countriesTableBody = countriesTable.find("tbody")
             countryRow = countriesTableBody.find("td", text=countryName).parent
             
@@ -56,6 +62,41 @@ class ScrapeWebsite:
             scrape_data['Total Tests'] = countryCells[12].text.strip().replace(",","")
             scrape_data['Total Tests per 1M Pop'] = countryCells[13].text.strip().replace(",","")
             scrape_data['Population'] = countryCells[14].text.strip().replace(",","")
+            scrape_data['Source'] = website
+            
+            return scrape_data
+        elif website == "who":
+            URL = "https://covid19.who.int/table"
+            
+            if "who" in self.htmlStorage.keys():
+                print("HAVE OLD DATA")
+                htmlSoup = self.htmlStorage['who']
+            else:
+                print("GET NEW DATA")
+                page = requests.get(URL)
+                htmlSoup = BeautifulSoup(page.content, "html.parser")
+                self.htmlStorage['who'] = htmlSoup
+            
+            page = requests.get(URL)
+            htmlSoup = BeautifulSoup(page.content, "html.parser")
+            
+            countriesTable = htmlSoup.find("div", role="rowgroup")
+            countryRow = countriesTable.find("div", title=countryName.strip()).parent.parent
+            countryCells = countryRow.findAll("div", role="cell")
+            
+            scrape_data = {}
+            scrape_data['Country'] = countryName
+            scrape_data['Total Cases'] = countryCells[1].find("div").find("div").find("div").text.strip().replace(",","")
+            scrape_data['New Cases'] = round(int(countryCells[2].find("div").text.strip().replace(",","")) / 7, 0)
+            scrape_data['Total Deaths'] = countryCells[3].find("div").text.strip().replace(",","")
+            scrape_data['New Deaths'] = round(int(countryCells[4].find("div").text.strip().replace(",","")) / 7, 0)
+            scrape_data['Active Cases'] = ""
+            scrape_data['Critical Cases'] = ""
+            scrape_data['Total Cases per 1M Pop'] = ""
+            scrape_data['Total Deaths per 1M Pop'] = ""
+            scrape_data['Total Tests'] = ""
+            scrape_data['Total Tests per 1M Pop'] = ""
+            scrape_data['Population'] = ""
             scrape_data['Source'] = website
             
             return scrape_data

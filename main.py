@@ -9,6 +9,7 @@ import ScrapeWebsite
 import pandas as pd
 import os
 import datetime
+import time
 
 scraper = ScrapeWebsite.ScrapeWebsite()
 currentDate = datetime.date.today()
@@ -29,15 +30,13 @@ inputFile.close()
 countriesToScrape = []
 
 for line in lines:
-    
+
     try:
         d = {}
-        print(line.strip())
         d = scraper.scrape_country(line.strip(), "worldometer")
-        #print(d)
         covid_df = covid_df.append(d, ignore_index=True)
     except:
-        print("We had an issue gathering data on", line.strip(), "from", "worldometer")
+        print("We had an issue gathering data on", line.strip(), "from", "who")
 
 covid_df.to_excel(excelPath, encoding = 'utf-8', index=False)
 covid_df.to_json(jsonPath)
